@@ -9,7 +9,7 @@ from tkinter import ttk
 root = Tk()
 root.state('zoomed')
 
-photo = PhotoImage(file="C:\\Users\\paresh\\Desktop\\CLG.png")
+photo = PhotoImage(file="CLG.png")
 background_label = Label(root, image=photo)
 background_label.place(x=0, y=0)
 background_label.image = photo
