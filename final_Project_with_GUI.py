@@ -151,9 +151,9 @@ def get_detail(stream):
         for i in clg_name:
             k+=1
             if (j%2==0):
-                tree.insert("", j, text=str(k)+'. '+i, values=(clg_add[j], clg_fee[0], clg_facility[j], clg_rating[j]), tags=('x'))
+                tree.insert("", j, text=str(k)+'. '+i, values=(clg_add[j], clg_fee[j], clg_facility[j], clg_rating[j]), tags=('x'))
             else:
-                tree.insert("", j, text=str(k)+'. '+i, values=(clg_add[j], clg_fee[0], clg_facility[j], clg_rating[j]), tags=('y'))
+                tree.insert("", j, text=str(k)+'. '+i, values=(clg_add[j], clg_fee[j], clg_facility[j], clg_rating[j]), tags=('y'))
             j+=1
 
 
