@@ -43,100 +43,119 @@ def get_detail(stream):
     r=requests.get(link+city, headers={'User-Agent': 'Mozilla/5.0'})
     html=r.content
     soup=BeautifulSoup(html,"html.parser")
-    page=soup.findAll("li", {"class":"linkpagination"})
     page_no=[]
-    for i in page:
-        w=i.get_text()
-        page_no.append(w)
-    page_no=page_no[0:len(page_no)-1]
-
+    page=soup.find("div", {"class":"pagnation-col"})
+    for i in page.findAll('a'):
+        x=i.text
+        if (x!="  "):
+            page_no.append(x)
     
     
-    for Q in range(len(page_no)+1,0,-1):
+    for Q in range(len(page_no),0,-1):
 
-        k=(Q-1)*30
+        k=(Q-1)*20
+        
         #scraping Data from Shiksha.com
-
+        
         r=requests.get(link+city+'-'+str(Q), headers={'User-Agent': 'Mozilla/5.0'})
         html=r.content
         soup=BeautifulSoup(html,"html.parser")
         table=soup.find("table", {"cellpadding":"0"})
-
+        print(Q)
 
         #finding clg name using RegEx
 
-        name=re.compile(r'<td>[A-Z].*')
-        clg=re.findall(name, str(table))
+        name=re.compile(r'<td>[A-z/ -;]*</td>')
+        clg_nametemp=[]
+
+        for i in re.findall(name, str(table)):
+            clg_nametemp.append(i)
+    
         clg_name=[]
-
         j=0
-        for i in clg:
-            if (j%2==0):
-                clg_name.append(i)
+    
+        for i in clg_nametemp:
+            x=re.sub('<td>', '', clg_nametemp[j])
+            x=re.sub('</td>', '', x)
+            if (j%3==0):
+                clg_name.append(x)
             j+=1
-
-        j=0
-        for i in clg_name:
-            clg_name[j]=re.sub('\</td>$', '', clg_name[j])
-            clg_name[j]=re.sub('^<td>', '', clg_name[j])
-            j+=1
+    
 
 
         #finding clg Address using RegEx
 
-        add_pattern=re.compile(r'<p>[|](.*)</p>')
-        add=re.findall(add_pattern, str(soup))
+        add_pattern=soup.findAll("p", {"class":"ctp-cty"})
+        clg_add=[]
+        for i in soup.findAll("p", {"class":"ctp-cty"}):
+            clg_add.append(i.text)
         
 
         #finding clg Fees using RegEx
 
-        fee_pattern=re.compile(r'<td>[0-9-].*')
-        fee=re.findall(fee_pattern,str(table))
+        fee_pattern=re.compile(r'<td>[A-z/ -;]*</td>')
+        clg_fee_temp=[]
+
+        for i in re.findall(fee_pattern, str(table)):
+            clg_fee_temp.append(i)
+    
+        clg_fee=[]
         j=0
-        for i in fee:
-            fee[j]=re.sub('\</td>$', '', fee[j])
-            fee[j]=re.sub('^<td>', '', fee[j])
+    
+        for i in clg_fee_temp:
+            x=re.sub('<td>', '', clg_fee_temp[j])
+            x=re.sub('</td>', '', x)
+            if ((j+1)%3==0):
+                clg_fee.append(x)
             j+=1
 
 
         #finding facility provided by clg using RegEx
 
-        f=soup.findAll("section", {"class":"tuple-clg-name"})
-        facility_pattern=re.compile(r'<h3>(.*)</h3>')
+        clg_link=[]
+        for i in soup.findAll("div", {"class":"ctpSrp-Lft"}):
+            link1=i.find('a')
+            x=link1.get('href')
+            clg_link.append(x)
         clg_facility=[]
-        for i in range(0,len(f)):
-            facility=re.findall(facility_pattern, str(f[i]))
-            if (len(facility)==0):
-                facility='-'
-            clg_facility.append(facility)
+        clg_rating=[]
 
-        #finding rating of clg using RegEx
+        for i in clg_link:
+            r1=requests.get(i, headers={'User-Agent': 'Mozilla/5.0'})
+            html1=r1.content
+            soup1=BeautifulSoup(html1,"html.parser")
+            f=soup1.find("ul", {"class":"infra flex-ul"})
+            f_pattern=re.compile(r'<p>([A-z|/|-]*)')
+            faci=re.findall(f_pattern, str(f))
+            clg_facility.append(faci)
 
-        temp0=soup.findAll('div', {'class':'course-inf'})
-        rating_pattern=re.compile(r'<span class=.rating-block.>\n.....')
-        rating=[]
-        for i in range(0,len(temp0)):
-            temp=re.findall(rating_pattern, str(temp0[i]))
+            #finding rating of clg using RegEx
+            
+
+            r=soup1.find("div", {"class":"location-of-clg"})
+            rating_pattern=re.compile(r'<span class=.rating-block.>\n.....')
+            temp=re.findall(rating_pattern, str(r))
             if (len(temp)==0):
                 temp1='-'
             else:
                 temp1=temp[0]
                 temp1=re.sub('^<span class=.rating-block.>\n..', '', temp1)
-            rating.append(temp1)
+            clg_rating.append(temp1)
 
+        
 
         j=0
         for i in clg_name:
             k+=1
             if (j%2==0):
-                tree.insert("", j, text=str(k)+'. '+i, values=(add[j], fee[j], clg_facility[j], rating[j]), tags=('x'))
+                tree.insert("", j, text=str(k)+'. '+i, values=(clg_add[j], clg_fee[0], clg_facility[j], clg_rating[j]), tags=('x'))
             else:
-                tree.insert("", j, text=str(k)+'. '+i, values=(add[j], fee[j], clg_facility[j], rating[j]), tags=('y'))
+                tree.insert("", j, text=str(k)+'. '+i, values=(clg_add[j], clg_fee[0], clg_facility[j], clg_rating[j]), tags=('y'))
             j+=1
 
 
 
-btn1=Button(root, text="Find Engineering colleges", command=lambda: get_detail('b-tech'), fg='red', bg='lightyellow').pack(pady=5,)
+btn1=Button(root, text="Find Engineering colleges", command=lambda: get_detail('b-tech'), fg='red', bg='lightyellow').pack(pady=5)
 btn2=Button(root, text="Find MBA/PGDM colleges", command=lambda: get_detail('mba'), fg='red', bg='lightyellow').pack(pady=5)
 btn3=Button(root, text="Find Law colleges", command=lambda: get_detail('law'), fg='red', bg='lightyellow').pack(pady=5)
 btn4=Button(root, text="Find Design colleges", command=lambda: get_detail('design'), fg='red', bg='lightyellow').pack(pady=5)  #submit btn
