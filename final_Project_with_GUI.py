@@ -45,10 +45,13 @@ def get_detail(stream):
     soup=BeautifulSoup(html,"html.parser")
     page_no=[]
     page=soup.find("div", {"class":"pagnation-col"})
-    for i in page.findAll('a'):
-        x=i.text
-        if (x!="  "):
-            page_no.append(x)
+    if (page==None):
+        page_no.append(1)
+    else:
+        for i in page.findAll('a'):
+            x=i.text
+            if (x!="  "):
+                page_no.append(x)
     
     
     for Q in range(len(page_no),0,-1):
@@ -56,7 +59,7 @@ def get_detail(stream):
         k=(Q-1)*20
         
         #scraping Data from Shiksha.com
-        
+        print(Q)
         r=requests.get(link+city+'-'+str(Q), headers={'User-Agent': 'Mozilla/5.0'})
         html=r.content
         soup=BeautifulSoup(html,"html.parser")
